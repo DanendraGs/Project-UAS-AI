@@ -1,0 +1,81 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+dataset = pd.read_csv('bmi.csv', index_col = 0)
+
+Label:
+0 - Underweight
+1 - Kurus
+2 - Normal
+3 - Overweight
+4 - Obesitas
+5 - Obesitas Ekstrim
+
+dataset
+
+print(dataset.shape)
+
+dataset.head(10)
+
+dataset[["Jenis Kelamin", "Tinggi Badan", "Berat Badan", "Label"]].describe()
+
+dataset.groupby('Label').size()
+
+dataset.isnull().sum()
+
+dataset.duplicated().sum()
+
+dataset = dataset.drop_duplicates()
+
+print(dataset.shape)
+
+plt.figure(figsize=(6, 4))
+sns.histplot(data=dataset, x='Tinggi Badan', bins=10, kde=True)
+plt.title('Distribusi Tinggi Badan')
+plt.xlabel('Tinggi Badan')
+plt.ylabel('Frekuensi')
+plt.show()
+
+fig=px.sunburst(dataset, path=['Jenis Kelamin', 'Label'], values=dataset.value_counts().values)
+fig.show()
+
+jk_encoder = LabelEncoder()
+dataset['Jenis Kelamin'] = jk_encoder.fit_transform(dataset['Jenis Kelamin'])
+
+dataset.head(10)
+
+x = dataset.drop(columns=['Label'])
+y = dataset['Label']
+print("x: ", x.shape)
+print("y: ", y.shape)
+
+scaler = StandardScaler()
+scaler.fit(x)
+x = scaler.transform(x)
+
+model = DecisionTreeClassifier()
+model.fit(x_train, y_train)
+prediction = model.predict(x_test)
+decision_tree_accuracy = accuracy_score(y_test, prediction)
+
+print(classification_report(y_test, prediction))
+print('Akurasi Model Decision Tree: {:.2f}%'.format(decision_tree_accuracy * 100))
+
+new_data = pd.DataFrame({
+    'Jenis Kelamin': ['Perempuan'],
+    'Tinggi Badan': [168],
+    'Berat Badan': [90]
+})  
+new_data['Jenis Kelamin'] = jk_encoder.transform(new_data['Jenis Kelamin'])
+
+new_data_scaled = scaler.transform(new_data)
+prediction = model.predict(new_data_scaled)
+print('Prediksi BMI: ', prediction[0])
